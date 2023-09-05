@@ -1,0 +1,35 @@
+struct segtree {
+    int len, maxxn = 1e18;
+    vector<int> maxx, minn, sums;
+    void init(int n) {
+        len = 1;
+        while (n > len) len *= 2;
+        maxx.assign(2 * len, -maxxn);minn.assign(2 * len, maxxn);sums.assign(2 * len, 0);
+    }
+    void set(int i, int v, int x, int lx, int rx) {
+        if (rx - lx == 1)
+            maxx[x] = v, minn[x] = v, sums[x] = v;
+        else {
+            int m = (lx + rx) / 2;
+            if (i < m)
+                set(i, v, 2 * x + 1, lx, m);
+            else
+                set(i, v, 2 * x + 2, m, rx);
+            maxx[x] = max(maxx[2 * x + 1], maxx[2 * x + 2]), minn[x] = min(minn[2 * x + 1], minn[2 * x + 2]);sums[x] = sums[2 * x + 1] + sums[2 * x + 2];
+        }
+    }
+    void set(int i, int v) {
+        set(i, v, 0, 0, len);
+    }
+    vector<int> range(int l, int r, int x, int lx, int rx) {
+        if (l >= rx or r <= lx) return { maxxn, -maxxn,0 };
+        if (l <= lx and rx <= r) return { minn[x], maxx[x],sums[x] };
+        int m = (lx + rx) / 2;
+        auto a = range(l, r, 2 * x + 1, lx, m);
+        auto b = range(l, r, 2 * x + 2, m, rx);
+        return { min(a[0], b[0]), max(a[1], b[1]),a[2] + b[2] };
+    }
+    vector<int> range(int l, int r) {
+        return range(l, r, 0, 0, len);
+    }
+};
