@@ -1,0 +1,68 @@
+struct segtree {
+    int len, maxxn = 1e18;
+    vector<int> sums, lazy;
+    void init(int n) {
+        len = 1;
+        while (n > len) len *= 2;
+        sums.assign(2 * len, 0);
+        lazy.assign(2 * len, -1);
+    }
+    void set(int i, int v, int x, int lx, int rx) {
+        if (rx - lx == 1)
+            sums[x] = v;
+        else {
+            int m = (lx + rx) / 2;
+            if (i < m)
+                set(i, v, 2 * x + 1, lx, m);
+            else
+                set(i, v, 2 * x + 2, m, rx);
+            sums[x] = sums[2 * x + 1] + sums[2 * x + 2];
+        }
+    }
+    void set(int i, int v) {
+        set(i, v, 0, 0, len);
+    }
+    int range(int l, int r, int x, int lx, int rx) {
+        if (l >= rx or r <= lx) return 0;
+        if (lazy[x] > -1) {
+            sums[x] += (rx - lx) * lazy[x];
+            if (rx - lx > 1) {
+                lazy[2 * x + 1] += lazy[x];
+                lazy[2 * x + 2] += lazy[x];
+            }
+            lazy[x] = -1;
+        }
+        if (l <= lx and rx <= r) return sums[x];
+        int m = (lx + rx) / 2;
+        return range(l, r, 2 * x + 1, lx, m) + range(l, r, 2 * x + 2, m, rx);
+    }
+    int range(int l, int r) {
+        return range(l, r + 1, 0, 0, len);
+    }
+    void setrange(int v, int l, int r, int x, int lx, int rx) {
+        if (lazy[x] > -1) {
+            sums[x] += (rx - lx) * lazy[x];
+            if (rx - lx > 1) {
+                lazy[2 * x + 1] += lazy[x];
+                lazy[2 * x + 2] += lazy[x];
+            }
+            lazy[x] = -1;
+        }
+        if (l >= rx or r <= lx)return;
+        if (l <= lx and rx <= r) {
+            sums[x] += (rx - lx) * v;
+            if (rx - lx > 1) {
+                lazy[2 * x + 1] += v;
+                lazy[2 * x + 2] += v;
+            }
+            return;
+        }
+        int m = (lx + rx) / 2;
+        setrange(v, l, r, 2 * x + 1, lx, m);
+        setrange(v, l, r, 2 * x + 2, m, rx);
+        sums[x] = sums[2 * x + 1] + sums[2 * x + 2];
+    }
+    void setrange(int l, int r, int v) {
+        setrange(v, l, r + 1, 0, 0, len);
+    }
+};
